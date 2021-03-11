@@ -1,0 +1,5 @@
+2021-03-11 11:27:22,161 INFO o.s.b.StartupInfoLogger [main] Starting DigitalChampionsApplication v0.0.1-SNAPSHOT using Java 1.8.0_282 on Zoe with PID 5131 (/home/richie/Projet/AFP/NYLSTECH/Micro-services/digital-champions-cours/target/digital-champions-course-0.0.1-SNAPSHOT.jar started by richie in /home/richie/Projet/AFP/NYLSTECH/Micro-services/digital-champions-cours)
+2021-03-11 11:27:22,178 DEBUG o.s.b.StartupInfoLogger [main] Running with Spring Boot v2.4.2, Spring v5.3.3
+2021-03-11 11:27:22,180 INFO o.s.b.SpringApplication [main] No active profile set, falling back to default profiles: default
+2021-03-11 11:27:32,375 DEBUG o.s.w.f.GenericFilterBean [main] Filter 'authenticationJwtTokenFilter' configured for use
+2021-03-11 11:27:35,362 INFO o.s.b.StartupInfoLogger [main] Started DigitalChampionsApplication in 14.067 seconds (JVM running for 16.921)
