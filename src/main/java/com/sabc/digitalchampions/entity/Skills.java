@@ -1,10 +1,12 @@
 package com.sabc.digitalchampions.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sabc.digitalchampions.exceptions.AbstractException;
 import com.sabc.digitalchampions.exceptions.NullSkillLabelException;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -21,6 +23,10 @@ public class Skills extends AbstractEntity{
     private Date createdAt;
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastCreatedAt;
+
+    @ManyToMany(mappedBy = "skills")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private List<Course> courses;
 
     public Skills() {
         this.createdAt = new Date();
@@ -69,6 +75,15 @@ public class Skills extends AbstractEntity{
 
     public Skills setRef(String ref) {
         this.ref = ref;
+        return this;
+    }
+
+    public List<Course> getCourses() {
+        return courses;
+    }
+
+    public Skills setCourses(List<Course> courses) {
+        this.courses = courses;
         return this;
     }
 

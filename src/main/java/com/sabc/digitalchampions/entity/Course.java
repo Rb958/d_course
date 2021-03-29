@@ -1,6 +1,7 @@
 package com.sabc.digitalchampions.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sabc.digitalchampions.exceptions.AbstractException;
 import com.sabc.digitalchampions.exceptions.NullCoursAuthorException;
 import com.sabc.digitalchampions.exceptions.NullCoursTitleException;
 
@@ -42,7 +43,14 @@ public class Course extends AbstractEntity{
     )
     private List<Chapter> chapters;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @JoinTable(name = "course_skill",
+            joinColumns = {
+                    @JoinColumn(name = "course_id", referencedColumnName = "id",
+                            nullable = false, updatable = false)},
+            inverseJoinColumns = {
+                    @JoinColumn(name = "skill_id", referencedColumnName = "id",
+                            nullable = false, updatable = false)})
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private List<Skills> skills;
 
@@ -152,6 +160,14 @@ public class Course extends AbstractEntity{
         return this;
     }
 
+    public void addSkills(Skills skills){
+        this.skills.add(skills);
+    }
+
+    public void removeSkills(Skills skills){
+        this.skills.remove(skills);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -178,7 +194,7 @@ public class Course extends AbstractEntity{
         return title;
     }
 
-    public void checkEntity() throws NullCoursTitleException, NullCoursAuthorException {
+    public void checkEntity() throws AbstractException {
         if (title == null){
             throw new NullCoursTitleException();
         }

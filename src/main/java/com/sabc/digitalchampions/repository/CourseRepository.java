@@ -15,5 +15,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     Course findByRef(String ref);
 
+    Page<Course> findAllByPublished(boolean published, Pageable pageable);
+
     boolean existsByRef(String ref);
 }

@@ -1,13 +1,11 @@
 package com.sabc.digitalchampions.controller;
 
-import com.sabc.digitalchampions.entity.Chapter;
-import com.sabc.digitalchampions.entity.Content;
-import com.sabc.digitalchampions.entity.Course;
-import com.sabc.digitalchampions.entity.Section;
+import com.sabc.digitalchampions.entity.*;
 import com.sabc.digitalchampions.exceptions.*;
 import com.sabc.digitalchampions.security.payload.response.ResponseException;
 import com.sabc.digitalchampions.security.payload.response.ResponseModel;
 import com.sabc.digitalchampions.services.CourseService;
+import com.sabc.digitalchampions.services.SkillService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.PageRequest;
@@ -17,16 +15,17 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
 public class AppController {
-    private CourseService courseService;
+    private final CourseService courseService;
 
-    private Logger logger = LogManager.getLogger(AppController.class);
+    private final Logger logger = LogManager.getLogger(AppController.class);
 
-    public AppController(CourseService courseService) {
+    public AppController(CourseService courseService, SkillService skillService) {
         this.courseService = courseService;
     }
 
@@ -51,10 +50,104 @@ public class AppController {
         }
     }
 
+    @PreAuthorize(value = "hasRole('ROLE_ADMIN')")
+    @PatchMapping("/course/{ref}/skills/add")
+    public ResponseEntity<?> setCourseSkills(@PathVariable(name = "ref") String ref,@RequestBody @Valid List<String> skills){
+        try {
+            if(courseService.setSkills(ref, skills)){
+                return ResponseEntity.ok(new ResponseModel<>("Skills successfully added", HttpStatus.OK));
+            }else{
+                return ResponseEntity.status(500).body(new ResponseModel<>("Unable to add those skills to this course", HttpStatus.INTERNAL_SERVER_ERROR));
+            }
+        }catch(AbstractException e){
+            return ResponseEntity.ok(new ResponseException(e));
+        }catch(Exception ex){
+            logger.error(ex.getMessage(),ex);
+            return ResponseEntity.status(500).body(
+                    new ResponseModel<>("An error occure while trying to set Course Skill. Pleace contact our support if the problem persist", HttpStatus.INTERNAL_SERVER_ERROR)
+            );
+        }
+    }
+
+    @GetMapping("/course/{ref}/skills")
+    public ResponseEntity<?> getCourseSkills(@PathVariable(name = "ref") String ref){
+        try {
+            return ResponseEntity.ok(new ResponseModel<>(courseService.getSkills(ref)));
+        } catch (AbstractException e) {
+            return ResponseEntity.ok(new ResponseException(e));
+        }
+    }
+
+    @PreAuthorize(value = "hasRole('ROLE_ADMIN')")
+    @PatchMapping("/course/{ref}/skills/remove")
+    public ResponseEntity<?> removeCourseSkills(@PathVariable(name = "ref") String ref,@RequestBody @Valid List<String> skills){
+        try {
+            if(courseService.removeSkills(ref, skills)){
+                return ResponseEntity.ok(new ResponseModel<>("Successfully deleted", HttpStatus.OK));
+            }else{
+                return ResponseEntity.status(500).body(new ResponseModel<>("Unable to delete this skill from this course", HttpStatus.INTERNAL_SERVER_ERROR));
+            }
+        }catch(AbstractException e){
+            return ResponseEntity.ok(new ResponseException(e));
+        }catch(Exception ex){
+            logger.error(ex.getMessage(),ex);
+            return ResponseEntity.status(500).body(
+                    new ResponseModel<>("An error occure while trying to set Course Skill. Pleace contact our support if the problem persist", HttpStatus.INTERNAL_SERVER_ERROR)
+            );
+        }
+    }
+
+    @PreAuthorize(value = "hasRole('ROLE_ADMIN')")
+    @PatchMapping("/course/{ref}/skill/add")
+    public ResponseEntity<?> addSkill(@PathVariable(name = "ref") String ref, @RequestBody @Valid Skills skills){
+        try {
+            if(courseService.addSkill(ref, skills)){
+                return ResponseEntity.ok(new ResponseModel<>("Skill was successfully added", HttpStatus.OK));
+            }else{
+                return ResponseEntity.status(500).body(new ResponseModel<>("Unable to add this skill to this course", HttpStatus.INTERNAL_SERVER_ERROR));
+            }
+        }catch(AbstractException e){
+            return ResponseEntity.ok(new ResponseException(e));
+        }catch(Exception ex){
+            logger.error(ex.getMessage(),ex);
+            return ResponseEntity.status(500).body(
+                    new ResponseModel<>("An error occure while trying to set Course Skill. Pleace contact our support if the problem persist", HttpStatus.INTERNAL_SERVER_ERROR)
+            );
+        }
+    }
+
+    @PreAuthorize(value = "hasRole('ROLE_ADMIN')")
+    @PatchMapping("/course/{ref}/skill/remove")
+    public ResponseEntity<?> removeSkill(@PathVariable(name = "ref") String ref, @RequestBody @Valid Skills skills){
+        try {
+            if (courseService.removeSkill(ref, skills)){
+                return ResponseEntity.ok(new ResponseModel<>("Successfully deleted", HttpStatus.OK));
+            }else{
+                return ResponseEntity.status(500).body(new ResponseModel<>("Unable to delete this skill from this course", HttpStatus.INTERNAL_SERVER_ERROR));
+            }
+        }catch(AbstractException e){
+            return ResponseEntity.ok(new ResponseException(e));
+        }catch(Exception ex){
+            logger.error(ex.getMessage(),ex);
+            return ResponseEntity.status(500).body(
+                    new ResponseModel<>("An error occure while trying to set Course Skill. Pleace contact our support if the problem persist", HttpStatus.INTERNAL_SERVER_ERROR)
+            );
+        }
+    }
+
     @GetMapping("/course")
-    public ResponseEntity<?> getCourses(@RequestParam(name = "title") Optional<String> key, @RequestParam(name = "page") int page, @RequestParam(name = "size") int size){
+    public ResponseEntity<?> getCourses(@RequestParam(name = "title") Optional<String> key,
+                                        @RequestParam(name = "page") int page,
+                                        @RequestParam(name = "size") int size){
         return ResponseEntity.ok(
                 new ResponseModel<>(courseService.findCourses(key.orElse(""), PageRequest.of(page,size))));
+    }
+
+    @GetMapping("/course-published")
+    public ResponseEntity<?> getPublishedCourse(@RequestParam(name = "page") int page, @RequestParam(name = "size") int size){
+        return ResponseEntity.ok(
+                new ResponseModel<>(courseService.findPublishedCourse(PageRequest.of(page,size)))
+        );
     }
 
     @GetMapping("/course/{ref}")
@@ -262,18 +355,18 @@ public class AppController {
     }
 
     @GetMapping("/chapter/{chapterRef}/section")
-    public ResponseEntity<?> getChaptersSections(@PathVariable(name = "chapterRef") String chapterRef, @RequestParam(name = "page") int page, @RequestParam(name = "size") int size){
+    public ResponseEntity<?> getChaptersSections(@PathVariable(name = "chapterRef") String chapterRef){
         try {
-            return ResponseEntity.ok(new ResponseModel<>(courseService.findSectionsByChapter(chapterRef, PageRequest.of(page, size))));
+            return ResponseEntity.ok(new ResponseModel<>(courseService.findSectionsByChapter(chapterRef)));
         } catch (AbstractException e) {
             return ResponseEntity.ok(new ResponseException(e));
         }
     }
 
-    @GetMapping("/chapter/{chapterRef}/section/{sectionRef}")
-    public ResponseEntity<?> getSpecificSection(@PathVariable(name = "chapterRef") String chapterRef, @PathVariable(name = "sectionRef") String sectionRef){
+    @GetMapping("/section/{sectionRef}")
+    public ResponseEntity<?> getSpecificSection( @PathVariable(name = "sectionRef") String sectionRef){
         try {
-            return ResponseEntity.ok(new ResponseModel<>(courseService.findSectionByRef(chapterRef, sectionRef)));
+            return ResponseEntity.ok(new ResponseModel<>(courseService.findSectionByRef(sectionRef)));
         } catch (AbstractException e) {
             return ResponseEntity.ok(new ResponseException(e));
         }

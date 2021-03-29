@@ -1,5 +1,6 @@
 package com.sabc.digitalchampions.services;
 
+import com.sabc.digitalchampions.entity.Course;
 import com.sabc.digitalchampions.entity.Skills;
 import com.sabc.digitalchampions.exceptions.SkillNotFoundException;
 import com.sabc.digitalchampions.exceptions.SkillsExistException;
@@ -9,9 +10,11 @@ import com.sabc.digitalchampions.utils.codegenerator.CodeConfigBuilder;
 import com.sabc.digitalchampions.utils.codegenerator.RbCodeGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 
 
 @Service
@@ -64,5 +67,20 @@ public class SkillService {
         Skills skills = skillsRepository.findByRef(skillRef);
         skillsRepository.delete(skills);
         return !skillsRepository.existsByRef(skillRef);
+    }
+
+    public boolean existsByLabel(String skills) {
+        return skillsRepository.existsByLabel(skills);
+    }
+
+    public Skills findByLabel(String skillLabel) {
+        return skillsRepository.findByLabel(skillLabel);
+    }
+
+    public boolean existByRef(String ref) {
+        return skillsRepository.existsByRef(ref);
+    }
+    public List<Skills> findAllByCourse(Course course) {
+        return skillsRepository.findByCoursesContaining(course);
     }
 }

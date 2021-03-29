@@ -1,9 +1,6 @@
 package com.sabc.digitalchampions.services;
 
-import com.sabc.digitalchampions.entity.Chapter;
-import com.sabc.digitalchampions.entity.Content;
-import com.sabc.digitalchampions.entity.Course;
-import com.sabc.digitalchampions.entity.Section;
+import com.sabc.digitalchampions.entity.*;
 import com.sabc.digitalchampions.exceptions.*;
 import com.sabc.digitalchampions.repository.ChapterRepository;
 import com.sabc.digitalchampions.repository.ContentRepository;
@@ -12,29 +9,35 @@ import com.sabc.digitalchampions.repository.SectionRepository;
 import com.sabc.digitalchampions.utils.codegenerator.CodeConfig;
 import com.sabc.digitalchampions.utils.codegenerator.CodeConfigBuilder;
 import com.sabc.digitalchampions.utils.codegenerator.RbCodeGenerator;
+import net.bytebuddy.implementation.bytecode.Throw;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @Service
 public class CourseService {
-    private CourseRepository courseRepository;
-    private ChapterRepository chapterRepository;
-    private SectionRepository sectionRepository;
-    private ContentRepository contentRepository;
+    private final CourseRepository courseRepository;
+    private final ChapterRepository chapterRepository;
+    private final SectionRepository sectionRepository;
+    private final ContentRepository contentRepository;
+    private final SkillService skillService;
 
     public CourseService(CourseRepository courseRepository,
                          ChapterRepository chapterRepository,
                          SectionRepository sectionRepository,
-                         ContentRepository contentRepository
+                         ContentRepository contentRepository,
+                         SkillService skillService
     ) {
         this.courseRepository = courseRepository;
         this.chapterRepository = chapterRepository;
         this.sectionRepository = sectionRepository;
         this.contentRepository = contentRepository;
+        this.skillService = skillService;
     }
 
     private String genRef(String pref) {
@@ -48,11 +51,12 @@ public class CourseService {
 
     // Manage course Entity
 
-    public Course saveCourse(Course course) throws CourseExistException {
+    public Course saveCourse(Course course) throws AbstractException {
         if (courseRepository.existsByTitle(course.getTitle())){
             throw new CourseExistException();
         }
         course.setRef(genRef("CRS"));
+        System.out.println(course);
         if (course.getChapters() != null && !course.getChapters().isEmpty()) {
             course.getChapters().forEach(chapter -> {
                 chapter.setRef(genRef("CHP"));
@@ -135,6 +139,10 @@ public class CourseService {
         course.setId(tmpCourse.getId());
         course.setRef(tmpCourse.getRef());
         return courseRepository.save(course);
+    }
+
+    public Page<Course> findPublishedCourse(Pageable pageable){
+        return courseRepository.findAllByPublished(true, pageable);
     }
 
     // Manage Chapter Entity
@@ -242,11 +250,11 @@ public class CourseService {
         return sectionRepository.save(section);
     }
 
-    public Page<Section> findSectionsByChapter(String chapterRef, Pageable pageable) throws AbstractException {
+    public List<Section> findSectionsByChapter(String chapterRef) throws AbstractException {
         if (!chapterRepository.existsByRef(chapterRef)){
             throw new ChapterNotFoundException();
         }
-        return sectionRepository.findAllByChapter_Ref(chapterRef, pageable);
+        return sectionRepository.findAllByChapter_Ref(chapterRef);
     }
 
     public Section updateSection(String chapterRef, String ref, Section section) throws AbstractException {
@@ -278,15 +286,9 @@ public class CourseService {
         return sectionRepository.save(section);
     }
 
-    public Section findSectionByRef(String chapterRef, String ref) throws AbstractException {
-        if (!chapterRepository.existsByRef(chapterRef)){
-            throw new ChapterNotFoundException();
-        }
+    public Section findSectionByRef(String ref) throws AbstractException {
         if (!sectionRepository.existsByRef(ref)){
             throw new SectionNotFoundException();
-        }
-        if (!sectionRepository.existsByRefAndChapter_Ref(ref, chapterRef)){
-            throw new SectionOwnerException();
         }
         return sectionRepository.findByRef(ref);
     }
@@ -384,6 +386,80 @@ public class CourseService {
         content.setId(tmpContent.getId());
         content.setSection(section);
         return contentRepository.save(content);
+    }
+
+    @Transactional
+    public boolean setSkills(String courseRef, List<String> skills) throws AbstractException{
+        if (!courseRepository.existsByRef(courseRef)){
+            throw new CourseNotFoundException();
+        }
+
+        Course course = courseRepository.findByRef(courseRef);
+        List<Skills> skillsList = new ArrayList<>();
+        for (String skillLabel: skills) {
+            if(skillService.existsByLabel(skillLabel)){
+                Skills skill = skillService.findByLabel(skillLabel);
+                skillsList.add(skill);
+                course.addSkills(skill);
+            }
+        }
+        course = courseRepository.save(course);
+        return skillService.findAllByCourse(course).containsAll(skillsList);
+    }
+
+    public List<Skills> getSkills(String courseRef) throws AbstractException{
+        if (!courseRepository.existsByRef(courseRef)){
+            throw new CourseNotFoundException();
+        }
+        Course course = courseRepository.findByRef(courseRef);
+        return skillService.findAllByCourse(course);
+    }
+
+    public boolean removeSkills(String courseRef, List<String> skills) throws AbstractException{
+        if (!courseRepository.existsByRef(courseRef)){
+            throw new CourseNotFoundException();
+        }
+
+        Course course = courseRepository.findByRef(courseRef);
+
+        List<Skills> skillsList = new ArrayList<>();
+        for (String skillLabel: skills) {
+            if(skillService.existsByLabel(skillLabel)) {
+                Skills skill = skillService.findByLabel(skillLabel);
+                skillsList.add(skill);
+                course.removeSkills(skill);
+            }
+        }
+        course = courseRepository.save(course);
+        return !skillService.findAllByCourse(course).containsAll(skillsList);
+    }
+
+    public boolean addSkill(String ref, Skills skills) throws AbstractException{
+        if (!courseRepository.existsByRef(ref)){
+            throw new CourseNotFoundException();
+        }
+        if (!skillService.existByRef(skills.getRef())){
+            throw new SkillNotFoundException();
+        }
+        Skills skills1 = skillService.findByRef(skills.getRef());
+        Course course = courseRepository.findByRef(ref);
+        course.addSkills(skills1);
+        course = courseRepository.save(course);
+        return skillService.findAllByCourse(course).contains(skills1);
+    }
+
+    public boolean removeSkill(String ref, Skills skills) throws AbstractException{
+        if (!courseRepository.existsByRef(ref)){
+            throw new CourseNotFoundException();
+        }
+        if (!skillService.existByRef(skills.getRef())){
+            throw new SkillNotFoundException();
+        }
+        Course course = courseRepository.findByRef(ref);
+        Skills skills1 = skillService.findByRef(skills.getRef());
+        course.removeSkills(skills1);
+        course = courseRepository.save(course);
+        return !skillService.findAllByCourse(course).contains(skills1);
     }
 
 }
