@@ -20,7 +20,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	@Value("${auth_host}")
 	private String host;
 
-	private Logger logger = LogManager.getLogger(UserDetailsServiceImpl.class);
+	private final Logger logger = LogManager.getLogger(UserDetailsServiceImpl.class);
 
 	public UserDetailsServiceImpl() {
 
@@ -86,7 +86,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	static class User {
 
 		private long id;
-		private String code;
+		private String matricule;
 		private String firstname;
 		private String lastname;
 		private String phone;
@@ -115,12 +115,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			return this;
 		}
 
-		public String getCode() {
-			return code;
+		public String getMatricule() {
+			return matricule;
 		}
 
-		public User setCode(String code) {
-			this.code = code;
+		public User setMatricule(String matricule) {
+			this.matricule = matricule;
 			return this;
 		}
 

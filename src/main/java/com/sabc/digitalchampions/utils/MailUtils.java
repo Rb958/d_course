@@ -27,12 +27,12 @@ public class MailUtils {
     public void sendHTMLMail(String from, Iterable<String> to, String subject, String body){
         System.out.println(username);
 
-        username = "pierremoro107@gmail.com";
-        password = "ldyrgcawadqdlmft";
+//        username = "pierremoro107@gmail.com";
+//        password = "ldyrgcawadqdlmft";
 
         Properties properties = new Properties();
-        properties.put("mail.smtp.host", "smtp.gmail.com");
-        properties.put("mail.smtp.port", 587);
+        properties.put("mail.smtp.host", host);
+        properties.put("mail.smtp.port", port);
         properties.put("mail.smtp.auth", "true");
         properties.put("mail.smtp.starttls.enable", "true");
 

@@ -54,11 +54,7 @@ public class AppController {
     @PatchMapping("/course/{ref}/skills/add")
     public ResponseEntity<?> setCourseSkills(@PathVariable(name = "ref") String ref,@RequestBody @Valid List<String> skills){
         try {
-            if(courseService.setSkills(ref, skills)){
-                return ResponseEntity.ok(new ResponseModel<>("Skills successfully added", HttpStatus.OK));
-            }else{
-                return ResponseEntity.status(500).body(new ResponseModel<>("Unable to add those skills to this course", HttpStatus.INTERNAL_SERVER_ERROR));
-            }
+            return ResponseEntity.ok(new ResponseModel<>(courseService.setSkills(ref, skills)));
         }catch(AbstractException e){
             return ResponseEntity.ok(new ResponseException(e));
         }catch(Exception ex){
@@ -101,11 +97,7 @@ public class AppController {
     @PatchMapping("/course/{ref}/skill/add")
     public ResponseEntity<?> addSkill(@PathVariable(name = "ref") String ref, @RequestBody @Valid Skills skills){
         try {
-            if(courseService.addSkill(ref, skills)){
-                return ResponseEntity.ok(new ResponseModel<>("Skill was successfully added", HttpStatus.OK));
-            }else{
-                return ResponseEntity.status(500).body(new ResponseModel<>("Unable to add this skill to this course", HttpStatus.INTERNAL_SERVER_ERROR));
-            }
+            return ResponseEntity.ok(new ResponseModel<>(courseService.addSkill(ref, skills)));
         }catch(AbstractException e){
             return ResponseEntity.ok(new ResponseException(e));
         }catch(Exception ex){

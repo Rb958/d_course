@@ -22,7 +22,7 @@ public class Skills extends AbstractEntity{
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
     @Temporal(TemporalType.TIMESTAMP)
-    private Date lastCreatedAt;
+    private Date lastUpdatedAt;
 
     @ManyToMany(mappedBy = "skills")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
@@ -30,7 +30,7 @@ public class Skills extends AbstractEntity{
 
     public Skills() {
         this.createdAt = new Date();
-        this.lastCreatedAt = new Date();
+        this.lastUpdatedAt = new Date();
     }
 
     public int getId() {
@@ -60,12 +60,12 @@ public class Skills extends AbstractEntity{
         return this;
     }
 
-    public Date getLastCreatedAt() {
-        return lastCreatedAt;
+    public Date getLastUpdatedAt() {
+        return lastUpdatedAt;
     }
 
-    public Skills setLastCreatedAt(Date lastCreatedAt) {
-        this.lastCreatedAt = lastCreatedAt;
+    public Skills setLastUpdatedAt(Date lastCreatedAt) {
+        this.lastUpdatedAt = lastCreatedAt;
         return this;
     }
 
@@ -95,12 +95,12 @@ public class Skills extends AbstractEntity{
         return id == skills.id &&
                 label.equals(skills.label) &&
                 Objects.equals(createdAt, skills.createdAt) &&
-                Objects.equals(lastCreatedAt, skills.lastCreatedAt);
+                Objects.equals(lastUpdatedAt, skills.lastUpdatedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, label, createdAt, lastCreatedAt);
+        return Objects.hash(id, label, createdAt, lastUpdatedAt);
     }
 
     @Override

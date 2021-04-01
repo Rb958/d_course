@@ -10,7 +10,6 @@ import com.sabc.digitalchampions.utils.codegenerator.CodeConfigBuilder;
 import com.sabc.digitalchampions.utils.codegenerator.RbCodeGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -56,7 +55,7 @@ public class SkillService {
         if (skillsRepository.existsByLabel(ref) && !skills.getLabel().equals(tmpSkills.getLabel())){
             throw new SkillsExistException();
         }
-        skills.setLastCreatedAt(new Date());
+        skills.setLastUpdatedAt(new Date());
         return skillsRepository.save(skills);
     }
 

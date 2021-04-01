@@ -23,7 +23,7 @@ public class Chapter {
     @Column(nullable = false, unique = true)
     private String ref;
 
-    @ManyToOne(optional = false, cascade =CascadeType.ALL)
+    @ManyToOne(optional = false)
     private Course course;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)

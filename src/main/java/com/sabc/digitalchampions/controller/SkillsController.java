@@ -2,13 +2,11 @@ package com.sabc.digitalchampions.controller;
 
 import com.sabc.digitalchampions.entity.Skills;
 import com.sabc.digitalchampions.exceptions.AbstractException;
-import com.sabc.digitalchampions.exceptions.SkillNotFoundException;
 import com.sabc.digitalchampions.security.payload.response.ResponseException;
 import com.sabc.digitalchampions.security.payload.response.ResponseModel;
 import com.sabc.digitalchampions.services.SkillService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +18,9 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api")
 public class SkillsController {
-    private SkillService skillService;
+    private final SkillService skillService;
 
-    private Logger logger = LogManager.getLogger(SkillsController.class);
+    private final Logger logger = LogManager.getLogger(SkillsController.class);
 
     public SkillsController(SkillService skillService) {
         this.skillService = skillService;

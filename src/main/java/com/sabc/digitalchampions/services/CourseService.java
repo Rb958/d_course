@@ -135,9 +135,16 @@ public class CourseService {
         if (!course.getTitle().equals(tmpCourse.getTitle()) && courseRepository.existsByTitle(course.getTitle())){
             throw new CourseExistException();
         }
+
+        List<Chapter> chapters = chapterRepository.findAllByCourse(course);
+        List<Skills> skills = skillService.findAllByCourse(course);
+
         course.setLastUpdatedAt(new Date());
         course.setId(tmpCourse.getId());
         course.setRef(tmpCourse.getRef());
+        course.setChapters(chapters);
+        course.setSkills(skills);
+
         return courseRepository.save(course);
     }
 
@@ -223,12 +230,14 @@ public class CourseService {
         }
 
         Chapter tmpChapter = chapterRepository.findByRef(chapterRef);
+        List<Section> sections = sectionRepository.findAllByChapter_Ref(chapterRef);
         chapter.setId(tmpChapter.getId());
         chapter.setRef(tmpChapter.getRef());
         chapter.setCourse(tmpChapter.getCourse());
         chapter.setCreateAt(tmpChapter.getCreateAt());
         chapter.setId(tmpChapter.getId());
         chapter.setLastUpdatedAt(new Date());
+        chapter.setSections(sections);
         return chapterRepository.save(chapter);
     }
 
@@ -267,7 +276,6 @@ public class CourseService {
         }
 
         Section section1 = sectionRepository.findByRef(ref);
-        System.out.println(section1);
 
         if (!sectionRepository.existsByRefAndChapter_Ref(ref, chapterRef)){
             throw new SectionOwnerException();
@@ -278,11 +286,13 @@ public class CourseService {
         }
 
         Chapter chapter = chapterRepository.findByRef(chapterRef);
+        List<Content> contents = contentRepository.findAllBySection_Ref(ref);
 
         section.setChapter(chapter);
         section.setId(section1.getId());
         section.setCreatedAt(section1.getCreatedAt());
         section.setLastUpdatedAt(new Date());
+        section.setContents(contents);
         return sectionRepository.save(section);
     }
 
@@ -389,7 +399,7 @@ public class CourseService {
     }
 
     @Transactional
-    public boolean setSkills(String courseRef, List<String> skills) throws AbstractException{
+    public List<Skills> setSkills(String courseRef, List<String> skills) throws AbstractException{
         if (!courseRepository.existsByRef(courseRef)){
             throw new CourseNotFoundException();
         }
@@ -404,7 +414,11 @@ public class CourseService {
             }
         }
         course = courseRepository.save(course);
-        return skillService.findAllByCourse(course).containsAll(skillsList);
+        if(skillService.findAllByCourse(course).containsAll(skillsList)){
+            return skillsList;
+        }else{
+            throw new UnknowErrorException("add skills to this course",500);
+        }
     }
 
     public List<Skills> getSkills(String courseRef) throws AbstractException{
@@ -434,7 +448,7 @@ public class CourseService {
         return !skillService.findAllByCourse(course).containsAll(skillsList);
     }
 
-    public boolean addSkill(String ref, Skills skills) throws AbstractException{
+    public Skills addSkill(String ref, Skills skills) throws AbstractException{
         if (!courseRepository.existsByRef(ref)){
             throw new CourseNotFoundException();
         }
@@ -445,7 +459,11 @@ public class CourseService {
         Course course = courseRepository.findByRef(ref);
         course.addSkills(skills1);
         course = courseRepository.save(course);
-        return skillService.findAllByCourse(course).contains(skills1);
+        if(skillService.findAllByCourse(course).contains(skills1)){
+            return skills1;
+        }else{
+            throw new UnknowErrorException("add skill to this course",500);
+        }
     }
 
     public boolean removeSkill(String ref, Skills skills) throws AbstractException{
