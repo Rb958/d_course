@@ -43,7 +43,7 @@ public class Course extends AbstractEntity{
     )
     private List<Chapter> chapters;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @ManyToMany()
     @JoinTable(name = "course_skill",
             joinColumns = {
                     @JoinColumn(name = "course_id", referencedColumnName = "id",

@@ -289,6 +289,7 @@ public class CourseService {
         List<Content> contents = contentRepository.findAllBySection_Ref(ref);
 
         section.setChapter(chapter);
+        section.setRef(section1.getRef());
         section.setId(section1.getId());
         section.setCreatedAt(section1.getCreatedAt());
         section.setLastUpdatedAt(new Date());
